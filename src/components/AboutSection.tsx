@@ -170,7 +170,7 @@ export function AboutSection() {
 
       {/* Core Values Section */}
       <section className="py-20 bg-muted/30">
-        <div className="w-full mx-auto px- sm:px-6 lg:px-8">
+        <div className="w-full mx-auto px-5 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <Badge className="bg-accent/10 text-accent border-0 mb-4">
               CORE VALUES
