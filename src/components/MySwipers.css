@@ -1,0 +1,159 @@
+.myswiper12 {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  height:90vh;
+}
+
+.mySwiper {
+  width: 100%;
+  height: 100%;
+  display:felx;
+}
+.slide{
+    width: 100%;
+    height: 100%;
+    display:flex;
+}
+.slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.custom-navigation {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 100px;
+  transform: translateY(-50%);
+  pointer-events: none; 
+}
+
+.custom-prev,
+.custom-next {
+  background-color: rgba(160, 50, 50, 1);
+  color: white;
+  padding: 10px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10%;
+  font-size: 20px;
+  pointer-events: all; /* Enable clicking */
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.custom-prev:hover,
+.custom-next:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.btn {
+  position: absolute;
+  z-index: 20;
+  top: 40%;
+  right: 30px;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: right center;
+  background-color: #a03232;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.btn button {
+  background: transparent;
+  font-size: 26px;
+  font-weight: 700;
+  color: white;
+  padding-left: 20px;
+  margin-right: 15px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.btn span {
+  height: 100%;
+  width: 40px;
+  background-color: #ffffffb2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn span .icons {
+  font-size: 30px;
+  color: #a03232;
+}
+
+/* ✅ MEDIA QUERIES FOR MOBILE FIXES */
+@media (max-width: 768px) {
+  .myswiper12{
+    height: auto;
+  }
+  .custom-navigation {
+    padding: 0 40px;
+  }
+
+  .custom-prev,
+  .custom-next {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .btn {
+    top: unset;
+    bottom: 20px;
+    left: 50%;
+    right: unset;
+    transform: translateX(-50%) rotate(0);
+    width: auto;
+    height: auto;
+    padding: 10px 20px;
+    border-radius: 10px;
+  }
+
+  .btn button {
+    font-size: 18px;
+    margin: 0;
+    padding: 0;
+    color: #fff;
+  }
+
+  .btn span {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .custom-navigation {
+    padding: 0 20px;
+  }
+.btn{
+    display: none;
+
+}
+  .custom-prev,
+  .custom-next {
+    width: 25px;
+    height: 25px;
+    font-size: 16px;
+    padding: 5px;
+  }
+
+  .btn button {
+    font-size: 16px;
+  }
+}

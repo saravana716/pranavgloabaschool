@@ -1,0 +1,25 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="12" fill="#0f4c5c"/>
+  <circle cx="32" cy="32" r="28" fill="#f5f1eb" opacity="0.3"/>
+  
+  <!-- Tree trunk -->
+  <path d="M30 42v-8c0-1 0.5-2 1.5-2.5" stroke="#0f4c5c" stroke-width="2" fill="none"/>
+  <path d="M34 42v-8c0-1 -0.5-2 -1.5-2.5" stroke="#0f4c5c" stroke-width="2" fill="none"/>
+  
+  <!-- Tree leaves/crown -->
+  <circle cx="28" cy="28" r="3" fill="#3caea3"/>
+  <circle cx="36" cy="28" r="3" fill="#c7d5c8"/>
+  <circle cx="32" cy="25" r="3" fill="#3caea3"/>
+  <circle cx="30" cy="30" r="2.5" fill="#c7d5c8"/>
+  <circle cx="34" cy="30" r="2.5" fill="#3caea3"/>
+  
+  <!-- Children figures -->
+  <circle cx="26" cy="38" r="1.5" fill="#b23a32"/>
+  <rect x="25" y="39" width="2" height="3" fill="#b23a32" rx="1"/>
+  
+  <circle cx="38" cy="38" r="1.5" fill="#b23a32"/>
+  <rect x="37" y="39" width="2" height="3" fill="#b23a32" rx="1"/>
+  
+  <!-- Small decorative elements -->
+  <circle cx="32" cy="20" r="1" fill="#e8ddd0"/>
+</svg>
