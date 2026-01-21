@@ -5,7 +5,8 @@ import { fetchGalleryImages, type GalleryImage } from '../utils/galleryService';
 import { toast } from 'sonner';
 
 export function RecentClicksSection() {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentDesktopSlide, setCurrentDesktopSlide] = useState(0);
+  const [currentMobileSlide, setCurrentMobileSlide] = useState(0);
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,17 +30,17 @@ export function RecentClicksSection() {
   }, []);
 
   const cardsPerView = 4;
-  const totalSets = images.length > 0 ? Math.ceil(images.length / cardsPerView) : 0;
+  const totalDesktopSets = images.length > 0 ? Math.ceil(images.length / cardsPerView) : 0;
 
-  // Auto-scroll continuously through all sets
+  // Auto-scroll for desktop - through sets of 4
   useEffect(() => {
-    if (images.length === 0 || totalSets <= 1) return;
+    if (images.length === 0 || totalDesktopSets <= 1) return;
     
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => {
+      setCurrentDesktopSlide((prev) => {
         const nextIndex = prev + 1;
         // If we've shown all sets, loop back to start
-        if (nextIndex >= totalSets) {
+        if (nextIndex >= totalDesktopSets) {
           return 0;
         }
         return nextIndex;
@@ -47,16 +48,43 @@ export function RecentClicksSection() {
     }, 3000); // Rotate every 3 seconds
 
     return () => clearInterval(timer);
-  }, [images.length, totalSets]);
+  }, [images.length, totalDesktopSets]);
 
-  const nextSlide = () => {
-    if (images.length === 0 || totalSets <= 1) return;
-    setCurrentSlide((prev) => (prev + 1) % totalSets);
+  // Auto-scroll for mobile - through individual images
+  useEffect(() => {
+    if (images.length === 0) return;
+    
+    const timer = setInterval(() => {
+      setCurrentMobileSlide((prev) => {
+        const nextIndex = prev + 1;
+        if (nextIndex >= images.length) {
+          return 0;
+        }
+        return nextIndex;
+      });
+    }, 3000); // Rotate every 3 seconds
+
+    return () => clearInterval(timer);
+  }, [images.length]);
+
+  const nextDesktopSlide = () => {
+    if (images.length === 0 || totalDesktopSets <= 1) return;
+    setCurrentDesktopSlide((prev) => (prev + 1) % totalDesktopSets);
   };
 
-  const prevSlide = () => {
-    if (images.length === 0 || totalSets <= 1) return;
-    setCurrentSlide((prev) => (prev - 1 + totalSets) % totalSets);
+  const prevDesktopSlide = () => {
+    if (images.length === 0 || totalDesktopSets <= 1) return;
+    setCurrentDesktopSlide((prev) => (prev - 1 + totalDesktopSets) % totalDesktopSets);
+  };
+
+  const nextMobileSlide = () => {
+    if (images.length === 0) return;
+    setCurrentMobileSlide((prev) => (prev + 1) % images.length);
+  };
+
+  const prevMobileSlide = () => {
+    if (images.length === 0) return;
+    setCurrentMobileSlide((prev) => (prev - 1 + images.length) % images.length);
   };
 
   const getCardColor = (index: number) => {
@@ -88,7 +116,7 @@ export function RecentClicksSection() {
           {images.length > 0 && (
             <div className="hidden md:flex items-center space-x-2">
               <button
-                onClick={prevSlide}
+                onClick={prevDesktopSlide}
                 disabled={isLoading || images.length === 0}
                 className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:bg-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Previous images"
@@ -96,7 +124,7 @@ export function RecentClicksSection() {
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
-                onClick={nextSlide}
+                onClick={nextDesktopSlide}
                 disabled={isLoading || images.length === 0}
                 className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:bg-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Next images"
@@ -125,7 +153,7 @@ export function RecentClicksSection() {
                 <div
                   className="flex transition-transform duration-500 ease-in-out"
                   style={{
-                    transform: `translateX(-${currentSlide * 100}%)`,
+                    transform: `translateX(-${currentDesktopSlide * 100}%)`,
                   }}
                 >
                   {/* Group images into sets of 4, each set takes full width */}
@@ -172,7 +200,7 @@ export function RecentClicksSection() {
                 <div
                   className="flex transition-transform duration-500 ease-in-out"
                   style={{
-                    transform: `translateX(-${(currentSlide % images.length) * 100}%)`,
+                    transform: `translateX(-${currentMobileSlide * 100}%)`,
                   }}
                 >
                   {/* Show all images one by one */}
@@ -212,7 +240,7 @@ export function RecentClicksSection() {
         {!isLoading && images.length > 0 && (
           <div className="flex md:hidden justify-center items-center space-x-4 mt-8">
             <button
-              onClick={prevSlide}
+              onClick={prevMobileSlide}
               disabled={images.length === 0}
               className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:bg-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Previous images"
@@ -224,9 +252,9 @@ export function RecentClicksSection() {
               {images.slice(0, Math.min(images.length, 10)).map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => setCurrentSlide(index)}
+                  onClick={() => setCurrentMobileSlide(index)}
                   className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    (currentSlide % images.length) === index
+                    currentMobileSlide === index
                       ? 'bg-secondary scale-125' 
                       : 'bg-muted-foreground/30 hover:bg-secondary/50'
                   }`}
@@ -236,7 +264,7 @@ export function RecentClicksSection() {
             </div>
             
             <button
-              onClick={nextSlide}
+              onClick={nextMobileSlide}
               disabled={images.length === 0}
               className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:bg-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Next images"
