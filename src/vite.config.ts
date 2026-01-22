@@ -1,17 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import legacy from '@vitejs/plugin-legacy'
 import postcssPresetEnv from 'postcss-preset-env'
+import postcssCascadeLayers from '@csstools/postcss-cascade-layers'
 import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
-    legacy({
-      targets: ['defaults', 'not IE 11', 'safari >= 10', 'ios >= 10'],
-      additionalLegacyPolyfills: ['regenerator-runtime/runtime']
-    })
+    react()
   ],
   resolve: {
     alias: {
@@ -21,6 +17,7 @@ export default defineConfig({
   css: {
     postcss: {
       plugins: [
+        postcssCascadeLayers(),
         postcssPresetEnv({
           stage: 3,
           features: {
@@ -33,7 +30,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    target: ['es2015', 'edge88', 'firefox78', 'chrome87', 'safari13'],
+    target: ['es2015', 'safari11'],
     rollupOptions: {
       output: {
         manualChunks: {
