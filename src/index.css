@@ -7469,6 +7469,7 @@ html {
 }
 .pageheader{
   height: 60vh;
+  object-fit: contain;
 }
 
 @media screen and (max-width: 768px){

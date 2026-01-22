@@ -15,7 +15,7 @@ export function PageHeader({ title, subtitle, backgroundImage }: PageHeaderProps
         <ImageWithFallback
           src={backgroundImage}
           alt="Header Background"
-          className="absolute w-full h-full object-cover"
+          className="absolute w-full object-contain inset-0"
         />
       )}
 

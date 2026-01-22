@@ -61,7 +61,7 @@ export function NewFooter({ onNavigate }: NewFooterProps) {
         <div className="full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-4 md:px-8 rounded-lg">
             {/* Phone */}
-            <div className="flex items-start md:items-center space-x-3">
+            <div className="flex items-center md:items-center space-x-3">
               <div className="bg-white/20 rounded-full p-2 flex-shrink-0">
                 <Phone className="h-8 w-8" />
               </div>
@@ -73,7 +73,7 @@ export function NewFooter({ onNavigate }: NewFooterProps) {
             </div>
 
             {/* Email */}
-            <div className="flex items-start md:items-center space-x-3">
+            <div className="flex items-center md:items-center space-x-3">
               <div className="bg-white/20 rounded-full p-2 flex-shrink-0">
                 <Mail className="h-8 w-8" />
               </div>
@@ -85,7 +85,7 @@ export function NewFooter({ onNavigate }: NewFooterProps) {
             </div>
 
             {/* Address */}
-            <div className="flex items-start md:items-center space-x-3">
+            <div className="flex items-center md:items-center space-x-3">
               <div className="bg-white/20 rounded-full p-2 flex-shrink-0">
                 <MapPin className="h-8 w-8" />
               </div>

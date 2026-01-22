@@ -8,9 +8,9 @@ import 'swiper/css/navigation';
 import './MySwipers.css';
 
 // import back2 from '../../Assets/b234.jpg';
-import back3 from '../assets/b1.jpeg';
-import back4 from '../assets/b2.jpeg';
-import back1 from '../assets/b3.jpeg';
+import back3 from '../assets/b2.jpeg';
+import back4 from '../assets/b3.jpeg';
+import back1 from '../assets/b1.jpeg';
 // import { Link } from 'react-router-dom';
 
 const MySwipers = () => {
