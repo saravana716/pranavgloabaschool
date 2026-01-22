@@ -23,7 +23,7 @@ const MySwipers = () => {
         }}
         modules={[Navigation, Autoplay]}
         autoplay={{ delay: 5000, disableOnInteraction: false }}
-        loop={true}a
+        loop={true}
         className="mySwiper"
       >
         <SwiperSlide><div className="slide"><img src={back1} alt="" /></div></SwiperSlide>

@@ -36,7 +36,7 @@ export function SchoolImageSwiper() {
     }, 5000); // Change image every 5 seconds
 
     return () => clearInterval(interval);
-  }, [schoolImages.length]);
+  }, []); // Empty dependency array - schoolImages is constant
 
   return (
     <div className="relative w-full h-full">
