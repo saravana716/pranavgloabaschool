@@ -5,6 +5,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 
 export function ActivitiesContentSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
+console.log("pppppppppp");
 
   const activities = [
     {

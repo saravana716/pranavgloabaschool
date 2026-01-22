@@ -5,7 +5,12 @@ import { RecentClicksSection } from './RecentClicksSection';
 import OurPrograms  from './OurPrograms';
 import VideoPlayer from './VideoPlayer';
 import MySwipers from "../components/MySwipers"
+
+// Set to true to enable render logging
+
 export function HomePage() {
+  console.log('🏠 [HomePage] RENDER')
+  
   return (
     <div>
       {/* Fullscreen Image Swiper */}

@@ -1,7 +1,11 @@
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useIsMobile } from "./ui/use-mobile";
 
 export function AnimatedBackground() {
+  console.log("ppppppppppp");
+  
+  const isMobile = useIsMobile();
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const [mounted, setMounted] = useState(false);
@@ -16,14 +20,38 @@ export function AnimatedBackground() {
 
   useEffect(() => {
     setMounted(true);
+    if (isMobile) return; // Skip mouse listeners on mobile
+
+    let animationFrameId: number;
+    
     const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(() => {
+        mouseX.set(e.clientX);
+        mouseY.set(e.clientY);
+      });
     };
 
     window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [mouseX, mouseY]);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [mouseX, mouseY, isMobile]);
+
+  if (isMobile) {
+    return (
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: "linear-gradient(135deg, #a8edea 0%, #fed6e3 20%, #d4fc79 40%, #a1c4fd 60%, #fbc2eb 80%, #96e6a1 100%)",
+            backgroundSize: "cover",
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">

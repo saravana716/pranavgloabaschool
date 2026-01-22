@@ -7,10 +7,16 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
   const [didError, setDidError] = useState(false)
 
   const handleError = () => {
-    setDidError(true)
+    if (!didError) {
+      setDidError(true)
+    }
   }
 
   const { src, alt, style, className, ...rest } = props
+  
+  // Destructure onError out of rest to prevent passing it to the fallback image
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { onError, ...safeRest } = rest
 
   return didError ? (
     <div
@@ -18,7 +24,7 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
       style={style}
     >
       <div className="flex items-center justify-center w-full h-full">
-        <img src={ERROR_IMG_SRC} alt="Error loading image" {...rest} data-original-url={src} />
+        <img src={ERROR_IMG_SRC} alt="Error loading image" {...safeRest} data-original-url={src} />
       </div>
     </div>
   ) : (

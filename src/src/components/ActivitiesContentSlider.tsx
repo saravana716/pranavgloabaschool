@@ -6,6 +6,8 @@ import { spotlightActivities } from '../data/activities';
 import { getCategoryColor } from '../utils/categoryUtils';
 
 export function ActivitiesContentSlider() {
+  console.log("bbbbbbbbbbbbbbbbbbbbnnnnnnnnnnnnnn");
+  
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Auto-advance slides

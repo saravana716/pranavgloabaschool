@@ -28,6 +28,7 @@ export function ScrollToTop() {
       behavior: 'smooth',
     });
   };
+console.log("vvvvvvvvvvvvvvvvvv");
 
   return (
     <>

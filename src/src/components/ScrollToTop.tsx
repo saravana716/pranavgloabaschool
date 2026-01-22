@@ -3,6 +3,8 @@ import { ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function ScrollToTop() {
+  console.log("kkkkkkkkkkkkkkkkkkkk");
+  
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {

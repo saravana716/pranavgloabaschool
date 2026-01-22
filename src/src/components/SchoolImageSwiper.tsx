@@ -37,6 +37,7 @@ export function SchoolImageSwiper() {
 
     return () => clearInterval(interval);
   }, []); // Empty dependency array - schoolImages is constant
+console.log("bbmmmmmmmmmmmmmmmmmmmmmm");
 
   return (
     <div className="relative w-full h-full">

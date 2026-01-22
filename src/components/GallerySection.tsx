@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import logo from "../assets/Gallery.jpg"
 
 export function GallerySection() {
+  console.log("iiiiiiiiiiiiiii");
+  
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);

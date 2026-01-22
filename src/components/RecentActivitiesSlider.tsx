@@ -111,6 +111,7 @@ export function RecentActivitiesSlider() {
     const start = currentSlide * cardsPerView;
     return activities.slice(start, start + cardsPerView);
   };
+console.log("oooooooo");
 
   return (
     <section className="py-20 bg-muted/30">

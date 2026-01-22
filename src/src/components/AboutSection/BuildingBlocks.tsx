@@ -4,6 +4,8 @@ import { ImageWithFallback } from '../figma/ImageWithFallback';
 import { buildingBlocks, facilityDetails } from '../../data/schoolData';
 
 export function BuildingBlocks() {
+  console.log("ggggggggggggggggggggggggggg");
+  
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Auto-slide functionality

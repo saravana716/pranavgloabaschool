@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, ExternalLink } from 'lucide-react';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
@@ -12,122 +12,121 @@ interface VideoPlayerProps {
   title?: string;
 }
 
-export default function VideoPlayer({ 
+const VideoPlayer = ({
   videoSrc,
-  thumbnailSrc = "https://images.unsplash.com/photo-1654169364060-4ab129db6b8b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aWRlbyUyMHBsYXllciUyMHRodW1ibmFpbCUyMG1vZGVybiUyMHRlY2h8ZW58MXx8fHwxNzU4MDM4NjI1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+  thumbnailSrc = "https://images.unsplash.com/photo-1654169364060-4ab129db6b8b",
   youtubeUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
   title = "Sample Video"
-}: VideoPlayerProps) {
+}: VideoPlayerProps) => {
+
   const videoRef = useRef<HTMLVideoElement>(null);
-  const volumeRef = useRef<number>(1);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
-  const [showControls, setShowControls] = useState(true);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [videoUrl, setVideoUrl] = useState<string>(videoSrc || '');
+  const volumeRef = useRef(1);
+  const autoPlayDone = useRef(false);
+  const lastTimeUpdateRef = useRef(0);
+  
+   console.log('🎥 [VideoPlayer] RENDER')
+
+  const [videoUrl, setVideoUrl] = useState(videoSrc || '');
   const [isLoadingVideo, setIsLoadingVideo] = useState(true);
 
-  // Fetch video from Firestore on component mount
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  /* ------------------ Load video URL ------------------ */
+
   useEffect(() => {
+    let mounted = true;
+
     const loadVideo = async () => {
       try {
         setIsLoadingVideo(true);
         const videoData = await fetchHomePageVideo();
-        if (videoData && videoData.url) {
+        if (mounted && videoData?.url) {
           setVideoUrl(videoData.url);
         }
-      } catch (error) {
-        console.error('Error loading video:', error);
+      } catch (err) {
+        console.error("Video load error:", err);
       } finally {
-        setIsLoadingVideo(false);
+        if (mounted) setIsLoadingVideo(false);
       }
     };
 
-    if (!videoSrc) {
-      loadVideo();
-    } else {
+    if (!videoSrc) loadVideo();
+    else {
       setVideoUrl(videoSrc);
       setIsLoadingVideo(false);
     }
+
+    return () => { mounted = false; };
   }, [videoSrc]);
 
-  // Autoplay video when it's loaded (only once, not on every pause)
+  /* ------------------ Autoplay once ------------------ */
+
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !videoUrl || isLoadingVideo || hasStarted) return;
+    if (!video || !videoUrl || isLoadingVideo || autoPlayDone.current) return;
 
-    const playVideo = async () => {
+    const tryAutoPlay = async () => {
       try {
-        video.muted = true; // Mute for autoplay (browser requirement)
+        video.muted = true;
         await video.play();
-        setHasStarted(true);
+        autoPlayDone.current = true;
         setIsPlaying(true);
+        setHasStarted(true);
         setIsLoaded(true);
-      } catch (error) {
-        // Autoplay failed, user interaction required
-        console.log('Autoplay prevented, waiting for user interaction');
+      } catch {
+        // Autoplay blocked – user interaction needed
       }
     };
 
-    const handleCanPlay = () => {
-      if (!hasStarted) {
-        playVideo();
-      }
-    };
-
-    video.addEventListener('canplay', handleCanPlay);
-    
-    // If video is already loaded, try to play
-    if (video.readyState >= 3 && !hasStarted) {
-      playVideo();
-    }
+    video.addEventListener('canplay', tryAutoPlay);
 
     return () => {
-      video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('canplay', tryAutoPlay);
     };
-  }, [videoUrl, isLoadingVideo, hasStarted]);
+  }, [videoUrl, isLoadingVideo]);
+
+  /* ------------------ Video listeners ------------------ */
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !videoUrl) return;
+    if (!video) return;
 
-    const updateTime = () => setCurrentTime(video.currentTime);
+    const updateTime = () => {
+      const now = Date.now();
+      if (now - lastTimeUpdateRef.current > 250) {
+        setCurrentTime(video.currentTime);
+        lastTimeUpdateRef.current = now;
+      }
+    };
+
     const updateDuration = () => {
-      if (video.duration && !isNaN(video.duration)) {
-        setDuration(video.duration);
-      }
+      if (!isNaN(video.duration)) setDuration(video.duration);
     };
-    const handleLoadedData = () => {
-      setIsLoaded(true);
-      if (video.duration && !isNaN(video.duration)) {
-        setDuration(video.duration);
-      }
-    };
-    const handlePlay = () => {
-      setIsPlaying(true);
-      setHasStarted(true);
-    };
-    const handlePause = () => {
-      setIsPlaying(false);
-    };
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
 
     video.addEventListener('timeupdate', updateTime);
     video.addEventListener('loadedmetadata', updateDuration);
-    video.addEventListener('loadeddata', handleLoadedData);
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
 
     return () => {
       video.removeEventListener('timeupdate', updateTime);
       video.removeEventListener('loadedmetadata', updateDuration);
-      video.removeEventListener('loadeddata', handleLoadedData);
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
     };
-  }, [videoUrl]);
+  }, []);
+
+  /* ------------------ Controls ------------------ */
 
   const togglePlay = async () => {
     const video = videoRef.current;
@@ -135,29 +134,22 @@ export default function VideoPlayer({
 
     try {
       if (!hasStarted) {
-        setHasStarted(true);
-        video.muted = false; // Unmute when user clicks play
+        video.muted = false;
         await video.play();
-        setIsPlaying(true);
+        setHasStarted(true);
         setIsMuted(false);
       } else {
-        if (isPlaying) {
-          video.pause();
-          setIsPlaying(false);
-        } else {
-          await video.play();
-          setIsPlaying(true);
-        }
+        isPlaying ? video.pause() : await video.play();
       }
-    } catch (error) {
-      console.error('Error toggling play/pause:', error);
+    } catch (err) {
+      console.error("Play error:", err);
     }
   };
 
   const handleProgressChange = (value: number[]) => {
     const video = videoRef.current;
-    if (!video) return;
-    
+    if (!video || !duration) return;
+
     const newTime = (value[0] / 100) * duration;
     video.currentTime = newTime;
     setCurrentTime(newTime);
@@ -181,191 +173,94 @@ export default function VideoPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    } else {
-      video.requestFullscreen();
-    }
+    document.fullscreenElement ? document.exitFullscreen() : video.requestFullscreen();
   };
 
-  const openYoutube = () => {
-    window.open(youtubeUrl, '_blank');
-  };
+  const openYoutube = () => window.open(youtubeUrl, '_blank');
 
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
+  const formatTime = (time: number) =>
+    `${Math.floor(time / 60)}:${Math.floor(time % 60).toString().padStart(2, '0')}`;
 
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const progress = duration ? (currentTime / duration) * 100 : 0;
+
+  /* ------------------ UI ------------------ */
 
   return (
-     <div 
-      className="h-auto p-4 md:p-8"
-      style={{
-        background: `linear-gradient(135deg, #E5EBEC 0%, #D1DCE0 25%, #BFD4DB 50%, #A8C5D1 75%, #95B8C4 100%)`
-      }}
-    >
+    <div className="h-auto p-4 md:p-8" style={{
+      background: 'linear-gradient(135deg, #E5EBEC, #95B8C4)'
+    }}>
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8 md:mb-12 px-4">
-          <h1 className="text-2xl md:text-4xl font-bold text-slate-800 mb-2 md:mb-4">
-            Discover a Standard Day at Pranav Global School
 
-          </h1>
-          <p className="text-base md:text-xl text-slate-600">
-          Step into the world of learning, creativity, and fun!
-Take a quick tour of how our students spend their day filled with knowledge, activities, and joy.
-   </p>
-        </div>
-        
-       <div 
-      className="relative w-[90%] max-w-4xl mx-auto bg-black rounded-2xl overflow-hidden shadow-2xl group"
-      style={{ height: '500px' }}
-      onMouseEnter={() => setShowControls(true)}
-      onMouseLeave={() => setShowControls(isPlaying ? false : true)}
-    >
-      {/* Video Element */}
-      {isLoadingVideo ? (
-        <div className="w-full h-full flex items-center justify-center bg-black">
-          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      ) : (
-        <video
-          ref={videoRef}
-          src={videoUrl}
-          className="w-full h-full object-cover"
-          muted
-          loop
-          playsInline
-          controls={false}
-          style={{
-            pointerEvents: 'auto'
-          }}
-          onPlay={(e) => {
-            e.stopPropagation();
-            setIsPlaying(true);
-            setHasStarted(true);
-          }}
-          onPause={(e) => {
-            e.stopPropagation();
-            setIsPlaying(false);
-          }}
-          onLoadedData={() => {
-            setIsLoaded(true);
-            const video = videoRef.current;
-            if (video && video.duration && !isNaN(video.duration)) {
-              setDuration(video.duration);
-            }
-          }}
-          onLoadedMetadata={() => {
-            const video = videoRef.current;
-            if (video && video.duration && !isNaN(video.duration)) {
-              setDuration(video.duration);
-            }
-          }}
-        />
-      )}
-
-      {/* Thumbnail Overlay (shown only if video hasn't started and we have a thumbnail) */}
-      {!hasStarted && !isLoadingVideo && thumbnailSrc && (
-        <div className="absolute inset-0 bg-black">
-          <ImageWithFallback
-            src={thumbnailSrc}
-            alt={title}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      )}
-
-      {/* YouTube Button */}
-      <div className="absolute top-8 right-8 md:top-4 md:right-4">
-        <Button
-          onClick={openYoutube}
-          variant="outline"
-          size="sm"
-          className="bg-red-900 hover:bg-red-700 text-white border-red-600 hover:border-red-700 transition-all duration-300 text-xs md:text-sm px-2 py-1 md:px-3 md:py-2"
+        <div
+          className="relative w-[90%] max-w-4xl mx-auto bg-black rounded-2xl overflow-hidden shadow-2xl"
+          style={{ height: 500 }}
+          onMouseEnter={() => setShowControls(true)}
+          onMouseLeave={() => setShowControls(isPlaying ? false : true)}
         >
-          <ExternalLink className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-          Take a Video Tour
 
-        </Button>
-      </div>
+          {isLoadingVideo ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              className="w-full h-full object-cover"
+              muted
+              loop
+              playsInline
+              controls={false}
+            />
+          )}
 
-      {/* Controls Bar */}
-      <div 
-        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 md:p-6 transition-all duration-300 ${
-          showControls ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
-        }`}
-        style={{ zIndex: 10 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Progress Bar */}
-        <div className="mb-3 md:mb-4">
-          <Slider
-                  value={[progress]}
-                  onValueChange={handleProgressChange}
-                  max={100}
-                  step={0.1}
-                  className="w-full [&_[role=slider]]:bg-white [&_[role=slider]]:border-white [&_[data-orientation=horizontal]]:bg-white/30 [&_[role=slider]]:w-4 [&_[role=slider]]:w-5 [&_[role=slider]]:h-4 md:[&_[role=slider]]:h-5 cursor-pointer"
-          />
-        </div>
+          {!hasStarted && !isLoadingVideo && (
+            <div className="absolute inset-0">
+              <ImageWithFallback src={thumbnailSrc} alt={title} className="w-full h-full object-cover" />
+            </div>
+          )}
 
-        {/* Controls Row */}
-        <div className="flex items-center justify-between flex-wrap gap-2 md:gap-0">
-          <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-            {/* Play/Pause */}
-            <Button
-              onClick={togglePlay}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 p-1 md:p-2"
-            >
-              {isPlaying ? <Pause className="w-4 h-4 md:w-5 md:h-5" /> : <Play className="w-4 h-4 md:w-5 md:h-5" />}
-            </Button>
-
-            {/* Volume - Hidden on mobile, shown on tablet+ */}
-           
-
-            {/* Time */}
-            <span className="text-white text-xs md:text-sm font-medium whitespace-nowrap">
-              {formatTime(currentTime)} / {formatTime(duration)}
-            </span>
-          </div>
-
-          {/* Right Controls */}
-          <div className="flex items-center gap-1 md:gap-2">
-            {/* Mobile Volume Control */}
-            <Button
-              onClick={toggleMute}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 p-1 md:p-2 sm:hidden"
-            >
-              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            </Button>
-            
-            <Button
-              onClick={toggleFullscreen}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 p-1 md:p-2"
-            >
-              <Maximize className="w-4 h-4 md:w-5 md:h-5" />
+          <div className="absolute top-4 right-4">
+            <Button onClick={openYoutube} size="sm" className="bg-red-700 text-white">
+              <ExternalLink className="w-4 h-4 mr-1" /> Video Tour
             </Button>
           </div>
-        </div>
-      </div>
 
-      {/* Loading Indicator */}
-      {hasStarted && !isLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-          <div className="w-6 h-6 md:w-8 md:h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          {/* Controls */}
+          <div className={`absolute bottom-0 left-0 right-0 bg-black/70 p-4 transition-all ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+            <Slider value={[progress]} onValueChange={handleProgressChange} max={100} step={0.1} />
+
+            <div className="flex justify-between items-center mt-2 text-white">
+              <div className="flex items-center gap-2">
+                <Button onClick={togglePlay} size="sm" variant="ghost">
+                  {isPlaying ? <Pause /> : <Play />}
+                </Button>
+
+                <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button onClick={toggleMute} size="sm" variant="ghost">
+                  {isMuted ? <VolumeX /> : <Volume2 />}
+                </Button>
+
+                <Button onClick={toggleFullscreen} size="sm" variant="ghost">
+                  <Maximize />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {hasStarted && !isLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+
         </div>
-      )}
-    </div>
       </div>
     </div>
-   
   );
-}
+};
+
+export default memo(VideoPlayer);

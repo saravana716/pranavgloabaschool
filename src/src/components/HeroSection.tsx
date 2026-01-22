@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SchoolImageSwiper } from './SchoolImageSwiper';
 
 export function HeroSection() {
+  console.log("mmmmmmmmmmmmmmmmm");
+  
   return (
     <section className="relative h-screen overflow-hidden">
       {/* Background Image Swiper */}

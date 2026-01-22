@@ -1,279 +1,200 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { fetchGalleryImages, type GalleryImage } from '../utils/galleryService';
 import { toast } from 'sonner';
 
-export function RecentClicksSection() {
-  const [currentDesktopSlide, setCurrentDesktopSlide] = useState(0);
-  const [currentMobileSlide, setCurrentMobileSlide] = useState(0);
+const AUTO_SCROLL_DELAY = 3000;
+const CARDS_PER_VIEW = 4;
+
+function RecentClicksSectionComponent() {
+  console.log('📸 Rendered ONLY once (unless images load)');
+
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch gallery images from Firebase on component mount
+  const desktopTrackRef = useRef<HTMLDivElement>(null);
+  const mobileTrackRef = useRef<HTMLDivElement>(null);
+
+  const desktopIndexRef = useRef(0);
+  const mobileIndexRef = useRef(0);
+
+  const desktopTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const mobileTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const totalDesktopSets = Math.ceil(images.length / CARDS_PER_VIEW);
+
+  /* ---------------- Fetch once ---------------- */
+
   useEffect(() => {
-    const loadGalleryImages = async () => {
+    let mounted = true;
+
+    const load = async () => {
       try {
-        setIsLoading(true);
-        const galleryImages = await fetchGalleryImages();
-        // Sort by createdAt (most recent first) - images are already sorted by galleryService
-        setImages(galleryImages);
-      } catch (error) {
-        console.error('Error loading gallery images:', error);
-        toast.error('Failed to load gallery images. Please try again later.');
+        const data = await fetchGalleryImages();
+        if (mounted) setImages(data);
+      } catch (e) {
+        toast.error('Failed to load gallery images');
       } finally {
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     };
 
-    loadGalleryImages();
+    load();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const cardsPerView = 4;
-  const totalDesktopSets = images.length > 0 ? Math.ceil(images.length / cardsPerView) : 0;
+  /* ---------------- Desktop auto scroll (NO STATE) ---------------- */
 
-  // Auto-scroll for desktop - through sets of 4
   useEffect(() => {
-    if (images.length === 0 || totalDesktopSets <= 1) return;
-    
-    const timer = setInterval(() => {
-      setCurrentDesktopSlide((prev) => {
-        const nextIndex = prev + 1;
-        // If we've shown all sets, loop back to start
-        if (nextIndex >= totalDesktopSets) {
-          return 0;
-        }
-        return nextIndex;
-      });
-    }, 3000); // Rotate every 3 seconds
+    if (!desktopTrackRef.current || totalDesktopSets <= 1) return;
 
-    return () => clearInterval(timer);
-  }, [images.length, totalDesktopSets]);
+    desktopTimerRef.current = setInterval(() => {
+      desktopIndexRef.current =
+        (desktopIndexRef.current + 1) % totalDesktopSets;
 
-  // Auto-scroll for mobile - through individual images
+      desktopTrackRef.current!.style.transform =
+        `translateX(-${desktopIndexRef.current * 100}%)`;
+    }, AUTO_SCROLL_DELAY);
+
+    return () => {
+      if (desktopTimerRef.current) clearInterval(desktopTimerRef.current);
+    };
+  }, [totalDesktopSets]);
+
+  /* ---------------- Mobile auto scroll (NO STATE) ---------------- */
+
   useEffect(() => {
-    if (images.length === 0) return;
-    
-    const timer = setInterval(() => {
-      setCurrentMobileSlide((prev) => {
-        const nextIndex = prev + 1;
-        if (nextIndex >= images.length) {
-          return 0;
-        }
-        return nextIndex;
-      });
-    }, 3000); // Rotate every 3 seconds
+    if (!mobileTrackRef.current || images.length === 0) return;
 
-    return () => clearInterval(timer);
+    mobileTimerRef.current = setInterval(() => {
+      mobileIndexRef.current =
+        (mobileIndexRef.current + 1) % images.length;
+
+      mobileTrackRef.current!.style.transform =
+        `translateX(-${mobileIndexRef.current * 100}%)`;
+    }, AUTO_SCROLL_DELAY);
+
+    return () => {
+      if (mobileTimerRef.current) clearInterval(mobileTimerRef.current);
+    };
   }, [images.length]);
 
-  const nextDesktopSlide = () => {
-    if (images.length === 0 || totalDesktopSets <= 1) return;
-    setCurrentDesktopSlide((prev) => (prev + 1) % totalDesktopSets);
+  /* ---------------- Manual controls ---------------- */
+
+  const nextDesktop = () => {
+    if (!desktopTrackRef.current) return;
+    desktopIndexRef.current =
+      (desktopIndexRef.current + 1) % totalDesktopSets;
+    desktopTrackRef.current.style.transform =
+      `translateX(-${desktopIndexRef.current * 100}%)`;
   };
 
-  const prevDesktopSlide = () => {
-    if (images.length === 0 || totalDesktopSets <= 1) return;
-    setCurrentDesktopSlide((prev) => (prev - 1 + totalDesktopSets) % totalDesktopSets);
+  const prevDesktop = () => {
+    if (!desktopTrackRef.current) return;
+    desktopIndexRef.current =
+      (desktopIndexRef.current - 1 + totalDesktopSets) % totalDesktopSets;
+    desktopTrackRef.current.style.transform =
+      `translateX(-${desktopIndexRef.current * 100}%)`;
   };
 
-  const nextMobileSlide = () => {
-    if (images.length === 0) return;
-    setCurrentMobileSlide((prev) => (prev + 1) % images.length);
+  const nextMobile = () => {
+    if (!mobileTrackRef.current) return;
+    mobileIndexRef.current =
+      (mobileIndexRef.current + 1) % images.length;
+    mobileTrackRef.current.style.transform =
+      `translateX(-${mobileIndexRef.current * 100}%)`;
   };
 
-  const prevMobileSlide = () => {
-    if (images.length === 0) return;
-    setCurrentMobileSlide((prev) => (prev - 1 + images.length) % images.length);
+  const prevMobile = () => {
+    if (!mobileTrackRef.current) return;
+    mobileIndexRef.current =
+      (mobileIndexRef.current - 1 + images.length) % images.length;
+    mobileTrackRef.current.style.transform =
+      `translateX(-${mobileIndexRef.current * 100}%)`;
   };
 
-  const getCardColor = (index: number) => {
-    const colors = [
-      'before:bg-gradient-to-t before:from-primary/80 before:to-transparent',
-      'before:bg-gradient-to-t before:from-secondary/80 before:to-transparent',
-      'before:bg-gradient-to-t before:from-destructive/80 before:to-transparent',
-      'before:bg-gradient-to-t before:from-accent/80 before:to-transparent'
-    ];
-    return colors[index % colors.length];
-  };
+  /* ---------------- UI ---------------- */
 
   return (
     <section className="py-20 bg-muted/30">
-      <div className="full mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-12">
-          <div>
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              Recent Clicks
-            </h2>
-            <p className="text-muted-foreground max-w-2xl">
-              Capturing memorable moments and vibrant life at Pranav Global School 
-              through our lens.
-            </p>
-          </div>
-          
-          {/* Navigation Controls */}
+      <div className="mx-auto px-4">
+
+        <div className="flex justify-between mb-10">
+          <h2 className="text-4xl font-bold">Recent Clicks</h2>
+
           {images.length > 0 && (
-            <div className="hidden md:flex items-center space-x-2">
-              <button
-                onClick={prevDesktopSlide}
-                disabled={isLoading || images.length === 0}
-                className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:bg-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Previous images"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={nextDesktopSlide}
-                disabled={isLoading || images.length === 0}
-                className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:bg-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Next images"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
+            <div className="hidden md:flex gap-2">
+              <button onClick={prevDesktop}><ChevronLeft /></button>
+              <button onClick={nextDesktop}><ChevronRight /></button>
             </div>
           )}
         </div>
 
-        {/* Image Slider */}
-        <div className="relative overflow-hidden">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-secondary" />
-              <span className="ml-3 text-muted-foreground">Loading gallery images...</span>
-            </div>
-          ) : images.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-muted-foreground text-lg">No gallery images available.</p>
-            </div>
-          ) : (
-            <>
-              {/* Desktop View - Rotating gallery showing all items, 4 at a time */}
-              <div className="hidden md:block overflow-hidden">
-                <div
-                  className="flex transition-transform duration-500 ease-in-out"
-                  style={{
-                    transform: `translateX(-${currentDesktopSlide * 100}%)`,
-                  }}
-                >
-                  {/* Group images into sets of 4, each set takes full width */}
-                  {Array.from({ length: Math.ceil(images.length / 4) }).map((_, setIndex) => (
-                    <div key={setIndex} className="w-full flex-shrink-0 flex gap-6">
-                      {images
-                        .slice(setIndex * 4, setIndex * 4 + 4)
-                        .map((image, index) => (
-                          <div
-                            key={image.id}
-                            className={`group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 cursor-pointer before:absolute before:inset-0 before:z-10 before:transition-opacity before:duration-300 before:opacity-0 hover:before:opacity-100 flex-1 ${getCardColor(index)}`}
-                            style={{
-                              animationDelay: `${index * 0.1}s`
-                            }}
-                          >
-                            <div className="relative h-80 overflow-hidden">
-                              <ImageWithFallback
-                                src={image.url}
-                                alt={image.title || image.name || 'Gallery Image'}
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                              />
-                              
-                              {/* Animated border */}
-                              <div className="absolute inset-0 border-2 border-transparent group-hover:border-white/30 rounded-2xl transition-all duration-300"></div>
-                              
-                              {/* Floating animation dots */}
-                              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <div className="flex space-x-1">
-                                  <div className={`w-2 h-2 rounded-full animate-bounce ${index % 2 === 0 ? 'bg-white' : 'bg-secondary'}`} style={{ animationDelay: '0ms' }}></div>
-                                  <div className={`w-2 h-2 rounded-full animate-bounce ${index % 2 === 0 ? 'bg-secondary' : 'bg-white'}`} style={{ animationDelay: '150ms' }}></div>
-                                  <div className={`w-2 h-2 rounded-full animate-bounce ${index % 2 === 0 ? 'bg-white' : 'bg-destructive'}`} style={{ animationDelay: '300ms' }}></div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Mobile View - Rotating gallery showing all items */}
-              <div className="md:hidden overflow-hidden">
-                <div
-                  className="flex transition-transform duration-500 ease-in-out"
-                  style={{
-                    transform: `translateX(-${currentMobileSlide * 100}%)`,
-                  }}
-                >
-                  {/* Show all images one by one */}
-                  {images.map((image, index) => (
-                    <div
-                      key={`${image.id}-${index}`}
-                      className={`group relative overflow-hidden shadow-lg flex-shrink-0 w-full transition-all duration-500 cursor-pointer before:absolute before:inset-0 before:z-10 before:transition-opacity before:duration-300 before:opacity-0 active:before:opacity-100 ${getCardColor(index)}`}
-                    >
-                      <div className="relative h-64 overflow-hidden">
-                        <ImageWithFallback
-                          src={image.url}
-                          alt={image.title || image.name || 'Gallery Image'}
-                          className="w-full h-full object-cover transition-transform duration-700 group-active:scale-110"
-                        />
-                    
-                        {/* Animated border */}
-                        <div className="absolute inset-0 border-2 border-transparent group-active:border-white/30 transition-all duration-300"></div>
-                        
-                        {/* Floating animation dots */}
-                        <div className="absolute top-4 right-4 opacity-0 group-active:opacity-100 transition-opacity duration-300">
-                          <div className="flex space-x-1">
-                            <div className={`w-2 h-2 rounded-full animate-bounce ${index % 2 === 0 ? 'bg-white' : 'bg-secondary'}`} style={{ animationDelay: '0ms' }}></div>
-                            <div className={`w-2 h-2 rounded-full animate-bounce ${index % 2 === 0 ? 'bg-secondary' : 'bg-white'}`} style={{ animationDelay: '150ms' }}></div>
-                            <div className={`w-2 h-2 rounded-full animate-bounce ${index % 2 === 0 ? 'bg-white' : 'bg-destructive'}`} style={{ animationDelay: '300ms' }}></div>
-                          </div>
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin" />
+          </div>
+        ) : images.length === 0 ? (
+          <div className="text-center py-20">No images</div>
+        ) : (
+          <>
+            {/* Desktop */}
+            <div className="hidden md:block overflow-hidden">
+              <div
+                ref={desktopTrackRef}
+                className="flex transition-transform duration-500"
+              >
+                {Array.from({ length: totalDesktopSets }).map((_, setIndex) => (
+                  <div key={setIndex} className="w-full flex gap-6 flex-shrink-0">
+                    {images
+                      .slice(setIndex * CARDS_PER_VIEW, setIndex * CARDS_PER_VIEW + CARDS_PER_VIEW)
+                      .map((img) => (
+                        <div key={img.id} className="flex-1 h-80">
+                          <ImageWithFallback
+                            src={img.url}
+                            alt={img.title || 'Gallery'}
+                            className="w-full h-full object-cover rounded-xl"
+                          />
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      ))}
+                  </div>
+                ))}
               </div>
-            </>
-          )}
-        </div>
-
-        {/* Mobile Navigation */}
-        {!isLoading && images.length > 0 && (
-          <div className="flex md:hidden justify-center items-center space-x-4 mt-8">
-            <button
-              onClick={prevMobileSlide}
-              disabled={images.length === 0}
-              className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:bg-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Previous images"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            
-            <div className="flex space-x-2">
-              {images.slice(0, Math.min(images.length, 10)).map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentMobileSlide(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    currentMobileSlide === index
-                      ? 'bg-secondary scale-125' 
-                      : 'bg-muted-foreground/30 hover:bg-secondary/50'
-                  }`}
-                  aria-label={`Go to image ${index + 1}`}
-                />
-              ))}
             </div>
-            
-            <button
-              onClick={nextMobileSlide}
-              disabled={images.length === 0}
-              className="p-3 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-300 hover:bg-secondary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Next images"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
+
+            {/* Mobile */}
+            <div className="md:hidden overflow-hidden">
+              <div
+                ref={mobileTrackRef}
+                className="flex transition-transform duration-500"
+              >
+                {images.map((img) => (
+                  <div key={img.id} className="w-full flex-shrink-0 h-64">
+                    <ImageWithFallback
+                      src={img.url}
+                      alt={img.title || 'Gallery'}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {!isLoading && images.length > 0 && (
+          <div className="flex md:hidden justify-center gap-4 mt-6">
+            <button onClick={prevMobile}><ChevronLeft /></button>
+            <button onClick={nextMobile}><ChevronRight /></button>
           </div>
         )}
       </div>
     </section>
   );
 }
+
+export const RecentClicksSection = memo(RecentClicksSectionComponent);

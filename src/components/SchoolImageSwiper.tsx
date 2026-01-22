@@ -55,6 +55,7 @@ export function SchoolImageSwiper() {
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
   };
+console.log("ccccccccccccc");
 
   return (
     <div className="relative w-full h-[calc(100vh-80px)] overflow-hidden bg-gray-900">
