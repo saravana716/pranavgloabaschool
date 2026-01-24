@@ -568,7 +568,7 @@ export function CareerSection() {
                     <Input
                       id="phone"
                       {...register('phone', { required: 'Phone number is required' })}
-                      placeholder="Number"
+                      placeholder="Enter your number"
                       className={errors.phone ? 'border-destructive' : ''}
                     />
                     {errors.phone && (

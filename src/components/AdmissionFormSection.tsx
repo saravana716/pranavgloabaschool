@@ -180,6 +180,7 @@ export function AdmissionFormSection() {
                     <Label htmlFor="studentName" style={{marginBottom:"10px"}}>Student Name *</Label>
                     <Input
                       id="studentName"
+                      placeholder="Student Name"
                       {...register('studentName', { 
                         required: 'Student name is required',
                         minLength: { value: 2, message: 'Name must be at least 2 characters' }
@@ -195,6 +196,7 @@ export function AdmissionFormSection() {
                     <Label htmlFor="parentName" style={{marginBottom:"10px"}}>Parent Name *</Label>
                     <Input
                       id="parentName"
+                      placeholder="Parent Name"
                       {...register('parentName', { 
                         required: 'Parent name is required',
                         minLength: { value: 2, message: 'Name must be at least 2 characters' }
@@ -213,6 +215,7 @@ export function AdmissionFormSection() {
                     <Label htmlFor="mobileNo" style={{marginBottom:"10px"}}>Mobile Number *</Label>
                     <Input
                       id="mobileNo"
+                      placeholder="Mobile Number"
                       type="tel"
                       {...register('mobileNo', { 
                         required: 'Mobile number is required',
@@ -232,6 +235,7 @@ export function AdmissionFormSection() {
                     <Label htmlFor="emailId" style={{marginBottom:"10px"}}>Email ID *</Label>
                     <Input
                       id="emailId"
+                      placeholder="Email ID"
                       type="email"
                       {...register('emailId', { 
                         required: 'Email is required',
