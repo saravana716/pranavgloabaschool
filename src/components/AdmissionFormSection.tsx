@@ -29,11 +29,20 @@ interface AdmissionFormData {
 }
 
 
-import { City } from 'country-state-city';
-
-
-
-const cities = City.getCitiesOfCountry('IN') || [];
+// Manual list of major Indian cities
+const cities = [
+  'Agra', 'Ahmedabad', 'Ajmer', 'Allahabad', 'Amritsar', 'Aurangabad',
+  'Bangalore', 'Bhopal', 'Bhubaneswar', 'Chandigarh', 'Chennai', 'Coimbatore',
+  'Cuttack', 'Dehradun', 'Delhi', 'Dhanbad', 'Faridabad', 'Ghaziabad', 'Goa',
+  'Guntur', 'Gurgaon', 'Guwahati', 'Gwalior', 'Hubli-Dharwad', 'Hyderabad',
+  'Indore', 'Jabalpur', 'Jaipur', 'Jalandhar', 'Jammu', 'Jamshedpur', 'Jodhpur',
+  'Kanpur', 'Kochi', 'Kolkata', 'Kota', 'Kozhikode', 'Lucknow', 'Ludhiana',
+  'Madurai', 'Mangalore', 'Meerut', 'Mumbai', 'Mysore', 'Nagpur', 'Nashik',
+  'Navi Mumbai', 'Noida', 'Patna', 'Pune', 'Raipur', 'Rajkot', 'Ranchi',
+  'Salem', 'Shimla', 'Siliguri', 'Srinagar', 'Surat', 'Thane', 'Thiruvananthapuram',
+  'Tiruchirappalli', 'Tirupati', 'Udaipur', 'Vadodara', 'Varanasi', 'Vijayawada',
+  'Visakhapatnam', 'Warangal'
+];
 
 export function AdmissionFormSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -284,7 +293,7 @@ export function AdmissionFormSection() {
                     />
                     <datalist id="cities-list">
                       {cities.map((city, index) => (
-                        <option key={`${city.name}-${index}`} value={city.name} />
+                        <option key={`${city}-${index}`} value={city} />
                       ))}
                     </datalist>
                     {errors.city && (

@@ -37,3 +37,10 @@ lerna-debug.log*
 
 # OS files
 Thumbs.db
+
+# Large files and archives
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
