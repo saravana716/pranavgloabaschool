@@ -14,6 +14,7 @@ export function Header({ currentPage, onNavigate }: HeaderProps) {
   const [isTeamSubmenuOpen, setIsTeamSubmenuOpen] = useState(false)
   const [isMobileAboutOpen, setIsMobileAboutOpen] = useState(false)
   const [isMobileTeamOpen, setIsMobileTeamOpen] = useState(false)
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
   const submenuRef = useRef<HTMLDivElement>(null)
@@ -34,6 +35,16 @@ export function Header({ currentPage, onNavigate }: HeaderProps) {
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Handle window resize for responsive padding
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   const navItems = [
@@ -110,7 +121,13 @@ export function Header({ currentPage, onNavigate }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-primary shadow-sm border-b">
       <div className="full mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
+        <div 
+          className="flex justify-between items-center" 
+          style={{ 
+            paddingTop: windowWidth >= 768 ? '1.5rem' : '0.5rem',
+            paddingBottom: windowWidth >= 768 ? '1.5rem' : '0.5rem'
+          }}
+        >
           {/* react-hook-form Animation Button */}
           {/* <div className="flex items-center">
             <button
@@ -324,12 +341,7 @@ export function Header({ currentPage, onNavigate }: HeaderProps) {
                     )}
                   </div>
                 ))}
-                <button
-                  onClick={() => handleNavigation('admission')}
-                  className="bg-red-600 hover:bg-red-700 text-white mt-4 px-4 py-2 rounded-md font-medium transition-colors"
-                >
-                  Apply Now
-                </button>
+              
               </nav>
             </div>
           </>
