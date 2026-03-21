@@ -1,5 +1,5 @@
 import { Facebook, Instagram, Mail, Phone, MapPin, Play } from 'lucide-react'
-import logoImage from '../assets/2.png'
+import logoImage from '../assets/download.png'
 
 interface NewFooterProps {
   onNavigate?: (page: string) => void;

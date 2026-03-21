@@ -1,5 +1,5 @@
 import { Button } from './ui/button'
-import logoImage from '../assets/2.png'
+import logoImage from '../assets/2.jpeg'
 
 interface TopHeaderProps {
   onNavigate: (page: string) => void;
