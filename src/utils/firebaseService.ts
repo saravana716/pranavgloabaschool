@@ -1,5 +1,4 @@
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { supabase } from '../config/supabase';
 
 export interface ContactFormData {
   firstName: string;
@@ -12,30 +11,26 @@ export interface ContactFormData {
 }
 
 /**
- * Saves contact form data to Firestore
+ * Saves contact form data to Supabase
  * @param data - Contact form data to save
  * @returns Promise with document ID if successful
  */
 export const saveContactFormData = async (data: ContactFormData): Promise<string> => {
   try {
-    // Prepare data for Firestore - explicitly include all fields
-    const dataToSave: any = {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-      phone: data.phone,
-      subject: data.subject,
-      createdAt: serverTimestamp(),
-    };
+    const { data: inserted, error } = await supabase
+      .from('contact_messages')
+      .insert({
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        subject: data.subject,
+        message: data.message || ''
+      })
+      .select('id')
+      .single();
 
-    // Always include message field (even if empty)
-    const messageValue = data.message !== undefined && data.message !== null 
-      ? String(data.message).trim() 
-      : '';
-    dataToSave.message = messageValue;
-    
-    const docRef = await addDoc(collection(db, 'contactForms'), dataToSave);
-    return docRef.id;
+    if (error) throw error;
+    return inserted ? inserted.id : '';
   } catch (error) {
     console.error('Error saving contact form data:', error);
     throw error;
@@ -57,38 +52,29 @@ export interface AdmissionFormData {
 }
 
 /**
- * Saves admission application data to Firestore
+ * Saves admission application data to Supabase
  * @param data - Admission form data to save
  * @returns Promise with document ID if successful
  */
 export const saveAdmissionFormData = async (data: AdmissionFormData): Promise<string> => {
   try {
-    // Prepare data for Firestore - explicitly include all fields
-    const dataToSave: any = {
-      studentName: data.studentName,
-      parentName: data.parentName,
-      mobileNo: data.mobileNo,
-      emailId: data.emailId,
-      grade: data.grade,
-      city: data.city,
-      createdAt: serverTimestamp(),
-    };
+    const { data: inserted, error } = await supabase
+      .from('admission_applications')
+      .insert({
+        student_name: data.studentName,
+        parent_name: data.parentName,
+        email: data.emailId,
+        phone: data.mobileNo,
+        grade: data.grade,
+        city: data.city,
+        previous_school: data.previousSchool || '',
+        message: data.message || ''
+      })
+      .select('id')
+      .single();
 
-    // Add optional fields if they exist
-    if (data.previousSchool !== undefined) {
-      dataToSave.previousSchool = data.previousSchool.trim() || '';
-    }
-    
-    if (data.message !== undefined) {
-      dataToSave.message = data.message.trim() || ''; // Save message even if empty
-    }
-    
-    if (data.recaptcha !== undefined) {
-      dataToSave.recaptcha = data.recaptcha;
-    }
-    
-    const docRef = await addDoc(collection(db, 'admissionForms'), dataToSave);
-    return docRef.id;
+    if (error) throw error;
+    return inserted ? inserted.id : '';
   } catch (error) {
     console.error('Error saving admission form data:', error);
     throw error;
@@ -109,37 +95,27 @@ export interface JobApplicationData {
 }
 
 /**
- * Saves job application data to Firestore
+ * Saves job application data to Supabase
  * @param data - Job application form data to save
  * @returns Promise with document ID if successful
  */
 export const saveJobApplicationData = async (data: JobApplicationData): Promise<string> => {
   try {
-    // Prepare data for Firestore - explicitly include all fields
-    const dataToSave: any = {
-      fullName: data.fullName,
-      email: data.email,
-      phone: data.phone,
-      position: data.position,
-      experience: data.experience,
-      createdAt: serverTimestamp(),
-    };
+    const { data: inserted, error } = await supabase
+      .from('job_applications')
+      .insert({
+        name: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        position: data.position,
+        cover_letter: data.coverLetter || '',
+        resume_url: data.resumeUrl || ''
+      })
+      .select('id')
+      .single();
 
-    // Add optional fields - save message/coverLetter even if empty
-    if (data.coverLetter !== undefined) {
-      dataToSave.coverLetter = String(data.coverLetter).trim() || '';
-    }
-    
-    if (data.resumeFileName) {
-      dataToSave.resumeFileName = data.resumeFileName;
-    }
-    
-    if (data.resumeUrl) {
-      dataToSave.resumeUrl = data.resumeUrl;
-    }
-    
-    const docRef = await addDoc(collection(db, 'jobApplications'), dataToSave);
-    return docRef.id;
+    if (error) throw error;
+    return inserted ? inserted.id : '';
   } catch (error) {
     console.error('Error saving job application data:', error);
     throw error;

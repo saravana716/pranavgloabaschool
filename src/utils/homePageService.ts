@@ -1,5 +1,4 @@
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { supabase } from '../config/supabase';
 
 export interface HomePageVideo {
   url: string;
@@ -16,21 +15,25 @@ export interface HomePageBanner {
 }
 
 /**
- * Fetches the video from Firestore homePage collection
+ * Fetches the video from Supabase homepage_settings table
  * @returns Promise with video data or null if not found
  */
 export const fetchHomePageVideo = async (): Promise<HomePageVideo | null> => {
   try {
-    const videoDocRef = doc(db, 'homePage', 'video');
-    const videoDoc = await getDoc(videoDocRef);
+    const { data, error } = await supabase
+      .from('homepage_settings')
+      .select('*')
+      .eq('key', 'video')
+      .maybeSingle();
 
-    if (videoDoc.exists()) {
-      const data = videoDoc.data();
+    if (error) throw error;
+
+    if (data) {
       return {
         url: data.url || '',
         name: data.name || '',
-        fullPath: data.fullPath || '',
-        updatedAt: data.updatedAt
+        fullPath: data.full_path || '',
+        updatedAt: data.updated_at
       };
     }
 
@@ -42,21 +45,25 @@ export const fetchHomePageVideo = async (): Promise<HomePageVideo | null> => {
 };
 
 /**
- * Fetches the banner image from Firestore homePage collection
+ * Fetches the banner image from Supabase homepage_settings table
  * @returns Promise with banner data or null if not found
  */
 export const fetchHomePageBanner = async (): Promise<HomePageBanner | null> => {
   try {
-    const bannerDocRef = doc(db, 'homePage', 'banner');
-    const bannerDoc = await getDoc(bannerDocRef);
+    const { data, error } = await supabase
+      .from('homepage_settings')
+      .select('*')
+      .eq('key', 'banner')
+      .maybeSingle();
 
-    if (bannerDoc.exists()) {
-      const data = bannerDoc.data();
+    if (error) throw error;
+
+    if (data) {
       return {
         url: data.url || '',
         name: data.name || '',
-        fullPath: data.fullPath || '',
-        updatedAt: data.updatedAt
+        fullPath: data.full_path || '',
+        updatedAt: data.updated_at
       };
     }
 

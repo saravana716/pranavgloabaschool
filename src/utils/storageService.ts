@@ -1,11 +1,10 @@
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../config/firebaseStorage';
+import { supabase, BUCKET_NAME } from '../config/supabase';
 
 /**
- * Uploads a resume file to Firebase Storage
+ * Uploads a resume file to Supabase Storage
  * @param file - The file to upload
  * @param applicantName - Name of the applicant (for folder organization)
- * @returns Promise with the download URL
+ * @returns Promise with the public download URL
  */
 export const uploadResume = async (file: File, applicantName: string): Promise<string> => {
   try {
@@ -25,16 +24,19 @@ export const uploadResume = async (file: File, applicantName: string): Promise<s
     const sanitizedName = applicantName.replace(/[^a-zA-Z0-9]/g, '_');
     const fileName = `resumes/${sanitizedName}_${timestamp}.pdf`;
 
-    // Create storage reference
-    const storageRef = ref(storage, fileName);
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(fileName, file, { cacheControl: '3600', upsert: true });
 
-    // Upload file
-    await uploadBytes(storageRef, file);
+    if (uploadError) throw uploadError;
 
-    // Get download URL
-    const downloadURL = await getDownloadURL(storageRef);
+    // Get Public URL
+    const { data: urlData } = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(fileName);
     
-    return downloadURL;
+    return urlData.publicUrl;
   } catch (error) {
     console.error('Error uploading resume:', error);
     throw error;
